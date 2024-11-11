@@ -16,10 +16,11 @@
         let character = {
             x: 50,
             y: 350,
-            width: 50,
-            height: 50,
-            dx: 5,
+            width: 16, // Adjusted to match the pixel art size
+            height: 16, // Adjusted to match the pixel art size
+            dx: 0,
             dy: 0,
+            speed: 5,
             jumpPower: 12,
             isJumping: false,
             doubleJump: false,
@@ -27,60 +28,69 @@
         };
 
         let keys = {};
+        let characterImage = new Image();
+        characterImage.src = "art/chardemo.png"; // Replace with the correct path to your pixel art image
 
-        function drawCharacter() {
-            ctx.fillStyle = 'blue';
-            ctx.fillRect(character.x, character.y, character.width, character.height);
-        }
-
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-
-        function update() {
-            clearCanvas();
-            moveCharacter();
-            applyGravity();
-            drawCharacter();
-            requestAnimationFrame(update);
-        }
-
-        function moveCharacter() {
-            if (keys['ArrowLeft']) {
-                character.x -= character.dx;
+        // Ensure the image is loaded before drawing
+        characterImage.onload = function() {
+            function drawCharacter() {
+                ctx.drawImage(characterImage, character.x, character.y, character.width, character.height);
             }
-            if (keys['ArrowRight']) {
+
+            function clearCanvas() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            function update() {
+                clearCanvas();
+                moveCharacter();
+                applyGravity();
+                drawCharacter();
+                requestAnimationFrame(update);
+            }
+
+            function moveCharacter() {
+                if (keys['ArrowLeft']) {
+                    character.dx = -character.speed;
+                }
+                if (keys['ArrowRight']) {
+                    character.dx = character.speed;
+                }
+                if (!keys['ArrowLeft'] && !keys['ArrowRight']) {
+                    character.dx = 0;
+                }
                 character.x += character.dx;
+
+                if (keys['ArrowUp'] && !character.isJumping) {
+                    character.dy = -character.jumpPower;
+                    character.isJumping = true;
+                } else if (keys['ArrowUp'] && character.isJumping && !character.doubleJump) {
+                    character.dy = -character.jumpPower;
+                    character.doubleJump = true;
+                }
             }
-            if (keys['ArrowUp'] && !character.isJumping) {
-                character.dy = -character.jumpPower;
-                character.isJumping = true;
-            } else if (keys['ArrowUp'] && character.isJumping && !character.doubleJump) {
-                character.dy = -character.jumpPower;
-                character.doubleJump = true;
+
+            function applyGravity() {
+                character.dy += character.gravity;
+                character.y += character.dy;
+                if (character.y + character.height > canvas.height) {
+                    character.y = canvas.height - character.height;
+                    character.dy = 0;
+                    character.isJumping = false;
+                    character.doubleJump = false;
+                }
             }
-        }
 
-        function applyGravity() {
-            character.dy += character.gravity;
-            character.y += character.dy;
-            if (character.y + character.height > canvas.height) {
-                character.y = canvas.height - character.height;
-                character.dy = 0;
-                character.isJumping = false;
-                character.doubleJump = false;
-            }
-        }
+            document.addEventListener('keydown', function(event) {
+                keys[event.key] = true;
+            });
 
-        document.addEventListener('keydown', function(event) {
-            keys[event.key] = true;
-        });
+            document.addEventListener('keyup', function(event) {
+                keys[event.key] = false;
+            });
 
-        document.addEventListener('keyup', function(event) {
-            keys[event.key] = false;
-        });
-
-        update();
+            update();
+        };
     </script>
 </body>
 </html>
