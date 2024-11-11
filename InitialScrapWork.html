@@ -16,8 +16,8 @@
         let character = {
             x: 50,
             y: 350,
-            width: 16, // Adjusted to match the pixel art size
-            height: 16, // Adjusted to match the pixel art size
+            width: 300, // Adjusted to match the pixel art size
+            height: 300, // Adjusted to match the pixel art size
             dx: 0,
             dy: 0,
             speed: 5,
@@ -29,7 +29,7 @@
 
         let keys = {};
         let characterImage = new Image();
-        characterImage.src = "art/chardemo.png"; // Replace with the correct path to your pixel art image
+        characterImage.src = "art/charcropped.png"; // Replace with the correct path to your pixel art image
 
         // Ensure the image is loaded before drawing
         characterImage.onload = function() {
