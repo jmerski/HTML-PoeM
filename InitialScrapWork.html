@@ -7,34 +7,26 @@
         canvas { background: #eee; display: block; margin: 0 auto; }
 
         /* CSS for rotating the sword */
-        .sword-attack-right {
+        .sword-attack {
             position: absolute;
-            width: 100px; /* Adjust the size as needed */
-            height: 100px; /* Adjust the size as needed */
-            animation: swing-right 0.5s forwards;
-        }
-
-        .sword-attack-left {
-            position: absolute;
-            width: 100px; /* Adjust the size as needed */
-            height: 100px; /* Adjust the size as needed */
-            animation: swing-left 0.5s forwards;
+            width: 500px; /* Adjust the size as needed */
+            height: 500px; /* Adjust the size as needed */
         }
 
         @keyframes swing-right {
             0% { transform: rotate(0deg); }
-            25% { transform: rotate(20deg); }
-            50% { transform: rotate(40deg); }
-            75% { transform: rotate(60deg); }
-            100% { transform: rotate(80deg); }
+            25% { transform: rotate(30deg); }
+            50% { transform: rotate(60deg); }
+            75% { transform: rotate(90deg); }
+            100% { transform: rotate(120deg); }
         }
 
         @keyframes swing-left {
             0% { transform: rotate(0deg); }
-            25% { transform: rotate(-20deg); }
-            50% { transform: rotate(-40deg); }
-            75% { transform: rotate(-60deg); }
-            100% { transform: rotate(-80deg); }
+            25% { transform: rotate(-30deg); }
+            50% { transform: rotate(-60deg); }
+            75% { transform: rotate(-90deg); }
+            100% { transform: rotate(-120deg); }
         }
     </style>
 </head>
@@ -49,8 +41,8 @@
         let character = {
             x: 50,
             y: 350,
-            width: 300,
-            height: 300,
+            width: 300, // Adjusted to match the pixel art size
+            height: 300, // Adjusted to match the pixel art size
             dx: 0,
             dy: 0,
             speed: 5,
@@ -58,24 +50,24 @@
             isJumping: false,
             doubleJump: false,
             gravity: 0.5,
-            facingRight: true
+            facingRight: true // Track the direction the character is facing
         };
 
         let keys = {};
         let characterImage = new Image();
-        characterImage.src = "art/charcropped.png"; // Replace with the correct path to your pixel art image
+        characterImage.src = "art/charnosword.png"; // Replace with the correct path to your pixel art image
 
         // Ensure the image is loaded before drawing
         characterImage.onload = function() {
             function drawCharacter() {
-                ctx.save();
+                ctx.save(); // Save the current canvas state
                 if (!character.facingRight) {
-                    ctx.scale(-1, 1);
+                    ctx.scale(-1, 1); // Flip horizontally
                     ctx.drawImage(characterImage, -character.x - character.width, character.y, character.width, character.height);
                 } else {
                     ctx.drawImage(characterImage, character.x, character.y, character.width, character.height);
                 }
-                ctx.restore();
+                ctx.restore(); // Restore the canvas state
             }
 
             function clearCanvas() {
@@ -115,21 +107,32 @@
                 if (keys['a']) {
                     console.log("A key pressed");
                     let sword = document.getElementById("sword");
-                    sword.style.display = "initial";
-                    sword.style.position = "absolute";
-                    if (character.facingRight) {
-                        sword.style.left = (character.x + character.width + canvas.offsetLeft - 150) + "px"; // Adjust for right-facing
-                        sword.classList.add("sword-attack-right");
-                    } else {
-                        sword.style.left = (character.x - sword.width + canvas.offsetLeft) + "px"; // Adjust for left-facing
-                        sword.classList.add("sword-attack-left");
-                    }
-                    sword.style.top = (character.y + canvas.offsetTop + (character.height / 2) - (sword.height / 2)) + "px"; // Centering the sword vertically
 
-                    setTimeout(() => {
-                        sword.style.display = "none";
-                        sword.classList.remove("sword-attack-right", "sword-attack-left");
-                    }, 500);
+                    // Load the image to get its natural dimensions
+                    let swordImage = new Image();
+                    swordImage.src = "art/croppedsword.png"; // Replace with the correct path to your sword image
+
+                    swordImage.onload = function() {
+                        // Set the sword's width and height to the image's natural dimensions
+                        sword.style.width = 20;
+                        sword.style.height = 50;
+
+                        // Make the sword visible and position it
+                        sword.style.display = "block";
+                        sword.style.position = "absolute";
+                        if (character.facingRight) {
+                            sword.style.left = (character.x + character.width + canvas.offsetLeft - 50) + "px"; // Adjusted for right-facing
+                            sword.style.animation = "swing-right 0.5s forwards";    
+                        } else {
+                            sword.style.left = (character.x - swordImage.naturalWidth + canvas.offsetLeft + 50) + "px"; // Adjusted for left-facing
+                            sword.style.animation = "swing-left 0.5s forwards";
+                        }
+                        sword.style.top = (character.y + canvas.offsetTop + (character.height / 2) - (swordImage.naturalHeight / 2)) + "px"; // Centering the sword vertically
+
+                        setTimeout(() => {
+                            sword.style.display = "none";
+                        }, 500);
+                    };
                 }
             }
 
