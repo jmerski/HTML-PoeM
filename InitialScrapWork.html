@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>2D Side Scroller</title>
+    <style>
+        canvas { background: #eee; display: block; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let character = {
+            x: 50,
+            y: 350,
+            width: 50,
+            height: 50,
+            dx: 5,
+            dy: 0,
+            jumpPower: 12,
+            isJumping: false,
+            doubleJump: false,
+            gravity: 0.5
+        };
+
+        let keys = {};
+
+        function drawCharacter() {
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(character.x, character.y, character.width, character.height);
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function update() {
+            clearCanvas();
+            moveCharacter();
+            applyGravity();
+            drawCharacter();
+            requestAnimationFrame(update);
+        }
+
+        function moveCharacter() {
+            if (keys['ArrowLeft']) {
+                character.x -= character.dx;
+            }
+            if (keys['ArrowRight']) {
+                character.x += character.dx;
+            }
+            if (keys['ArrowUp'] && !character.isJumping) {
+                character.dy = -character.jumpPower;
+                character.isJumping = true;
+            } else if (keys['ArrowUp'] && character.isJumping && !character.doubleJump) {
+                character.dy = -character.jumpPower;
+                character.doubleJump = true;
+            }
+        }
+
+        function applyGravity() {
+            character.dy += character.gravity;
+            character.y += character.dy;
+            if (character.y + character.height > canvas.height) {
+                character.y = canvas.height - character.height;
+                character.dy = 0;
+                character.isJumping = false;
+                character.doubleJump = false;
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            keys[event.key] = true;
+        });
+
+        document.addEventListener('keyup', function(event) {
+            keys[event.key] = false;
+        });
+
+        update();
+    </script>
+</body>
+</html>
