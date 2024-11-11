@@ -12,3 +12,6 @@ Targetting path for image, removed weird characters because it couldn't be read 
 
 Monday, November 11, 2024 @ 11:00:09 AM
 Cropping the character makes it look really good. I am really happy with the chatgpt art so far. I am going to commit this one because it makes me happy. Although I will aim for left and right. Actually emergency commit incase the new code that is provided breaks everything
+
+Monday, November 11, 2024 @ 02:11:31 PM
+Attack key works which is nice but the animations aren't great. Need to figure out how to make them based on char orientation. This is still not a realistic example of a database + real game setup. 
