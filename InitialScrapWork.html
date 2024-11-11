@@ -5,10 +5,28 @@
     <title>2D Side Scroller</title>
     <style>
         canvas { background: #eee; display: block; margin: 0 auto; }
+
+        /* CSS for rotating the sword */
+        .sword-attack {
+            position: absolute;
+            width: 100px; /* Adjust the size as needed */
+            height: 100px; /* Adjust the size as needed */
+            animation: swing 0.5s forwards;
+        }
+
+        @keyframes swing {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(20deg); }
+            50% { transform: rotate(40deg); }
+            75% { transform: rotate(60deg); }
+            100% { transform: rotate(80deg); }
+        }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <canvas id="gameCanvas" width="1600" height="800"></canvas>
+    <img id="sword" class="sword-attack" src="art/croppedsword.png" style="display: none;" />
+
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -24,17 +42,25 @@
             jumpPower: 12,
             isJumping: false,
             doubleJump: false,
-            gravity: 0.5
+            gravity: 0.5,
+            facingRight: true // Track the direction the character is facing
         };
 
         let keys = {};
         let characterImage = new Image();
-        characterImage.src = "art/charcropped.png"; // Replace with the correct path to your pixel art image
+        characterImage.src = "art/charnosword.png"; // Replace with the correct path to your pixel art image
 
         // Ensure the image is loaded before drawing
         characterImage.onload = function() {
             function drawCharacter() {
-                ctx.drawImage(characterImage, character.x, character.y, character.width, character.height);
+                ctx.save(); // Save the current canvas state
+                if (!character.facingRight) {
+                    ctx.scale(-1, 1); // Flip horizontally
+                    ctx.drawImage(characterImage, -character.x - character.width, character.y, character.width, character.height);
+                } else {
+                    ctx.drawImage(characterImage, character.x, character.y, character.width, character.height);
+                }
+                ctx.restore(); // Restore the canvas state
             }
 
             function clearCanvas() {
@@ -52,9 +78,11 @@
             function moveCharacter() {
                 if (keys['ArrowLeft']) {
                     character.dx = -character.speed;
+                    character.facingRight = false; // Update direction
                 }
                 if (keys['ArrowRight']) {
                     character.dx = character.speed;
+                    character.facingRight = true; // Update direction
                 }
                 if (!keys['ArrowLeft'] && !keys['ArrowRight']) {
                     character.dx = 0;
@@ -68,6 +96,40 @@
                     character.dy = -character.jumpPower;
                     character.doubleJump = true;
                 }
+
+// Assuming this is within the key press handling block
+if (keys['a']) {
+    console.log("A key pressed");
+    let sword = document.getElementById("sword");
+
+    // Load the image to get its natural dimensions
+    let swordImage = new Image();
+    swordImage.src = "art/croppedsword.png"; // Replace with the correct path to your sword image
+
+    swordImage.onload = function() {
+        // Set the sword's width and height to the image's natural dimensions
+        sword.style.width = swordImage.naturalWidth + "px";
+        sword.style.height = swordImage.naturalHeight + "px";
+
+        // Make the sword visible and position it
+        sword.style.display = "block";
+        sword.style.position = "absolute";
+        if (character.facingRight) {
+            sword.style.left = (character.x + character.width + canvas.offsetLeft) + "px"; // Adjusted for right-facing
+        } else {
+            sword.style.left = (character.x - swordImage.naturalWidth + canvas.offsetLeft) + "px"; // Adjusted for left-facing
+        }
+        sword.style.top = (character.y + canvas.offsetTop + (character.height / 2) - (swordImage.naturalHeight / 2)) + "px"; // Centering the sword vertically
+        sword.classList.add("sword-attack");
+
+        setTimeout(() => {
+            sword.style.display = "none";
+            sword.classList.remove("sword-attack");
+        }, 200);
+    };
+}
+
+
             }
 
             function applyGravity() {
