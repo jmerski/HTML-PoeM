@@ -15,3 +15,6 @@ Cropping the character makes it look really good. I am really happy with the cha
 
 Monday, November 11, 2024 @ 02:11:31 PM
 Attack key works which is nice but the animations aren't great. Need to figure out how to make them based on char orientation. This is still not a realistic example of a database + real game setup. 
+
+Monday, November 11, 2024 @ 02:36:38 PM
+It seems like I should only commit based on which llm I am using. A lot of the times they give bad results and that is okay. 
