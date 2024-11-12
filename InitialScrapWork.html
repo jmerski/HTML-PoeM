@@ -3,35 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D Side Scroller with Portal</title>
+    <title>2D Side Scroller with Visible Projectiles</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #87CEEB; /* Sky blue background */
+            background-color: black; /* Black background for better visibility */
         }
         canvas {
-            background: #eee;
+            background: black; /* Black canvas background */
             display: block;
             margin: 0 auto;
-        }
-        .portal {
-            position: absolute;
-            width: 50px;
-            height: 100px;
-            background: radial-gradient(circle, cyan, blue);
-            border-radius: 50%;
         }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <div id="portal" class="portal" style="display: none;"></div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const portalElement = document.getElementById('portal');
+
+        // Map settings
+        const mapWidth = 1920;
+        const mapHeight = 600;
 
         // Character object
         let character = {
@@ -41,7 +36,7 @@
             height: 50,
             dx: 0,
             dy: 0,
-            speed: 5,
+            speed: 2, // Reduced speed for less strain
             jumpPower: 15,
             isJumping: false,
             gravity: 0.8,
@@ -49,62 +44,57 @@
 
         let keys = {};
 
-        // Portal object
-        let portal = {
-            x: 700,
-            y: 500,
-            width: 50,
-            height: 100
+        // Camera settings
+        let camera = {
+            x: 0,
+            y: 0,
+            width: canvas.width,
+            height: canvas.height
         };
 
-        // Platforms
-        let platforms = [];
+        // Targets (all at ground level)
+        let targets = [
+            { x: 600, y: 550, width: 50, height: 50, health: 50, maxHealth: 50 },
+            { x: 1000, y: 550, width: 50, height: 50, health: 50, maxHealth: 50 },
+            { x: 1400, y: 550, width: 50, height: 50, health: 50, maxHealth: 50 }
+        ];
 
-        // Generate random platforms
-        function generateRandomPlatforms() {
-            platforms = []; // Clear existing platforms
-            for (let i = 0; i < 5; i++) {
-                platforms.push({
-                    x: Math.random() * (canvas.width - 100),
-                    y: 200 + Math.random() * (canvas.height - 300),
-                    width: 100,
-                    height: 20
-                });
-            }
-        }
-
-        // Initial map setup
-        function setupMap() {
-            character.x = 50;
-            character.y = 500;
-            generateRandomPlatforms();
-
-            // Set portal position
-            portal.x = Math.random() * (canvas.width - portal.width);
-            portal.y = 500; // Fixed ground position for now
-
-            // Update portal visual element
-            portalElement.style.left = `${portal.x}px`;
-            portalElement.style.top = `${portal.y}px`;
-            portalElement.style.display = 'block';
-        }
+        // Projectiles
+        let projectiles = [];
 
         // Game Loop Functions
         function drawCharacter() {
             ctx.fillStyle = 'red';
-            ctx.fillRect(character.x, character.y, character.width, character.height);
+            ctx.fillRect(character.x - camera.x, character.y - camera.y, character.width, character.height);
         }
 
-        function drawPlatforms() {
-            ctx.fillStyle = 'green';
-            platforms.forEach(platform => {
-                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+        function drawTargets() {
+            targets.forEach(target => {
+                if (target.health > 0) {
+                    // Draw target
+                    ctx.fillStyle = 'purple';
+                    ctx.fillRect(target.x - camera.x, target.y - camera.y, target.width, target.height);
+
+                    // Draw health bar
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(target.x - camera.x, target.y - camera.y - 10, target.width, 5);
+
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(target.x - camera.x, target.y - camera.y - 10, target.width * (target.health / target.maxHealth), 5);
+                }
             });
         }
 
-        function drawPortal() {
-            portalElement.style.left = `${portal.x + canvas.offsetLeft}px`;
-            portalElement.style.top = `${portal.y + canvas.offsetTop}px`;
+        function drawProjectiles() {
+            projectiles.forEach(projectile => {
+                // Create a glowing effect for the projectile
+                ctx.save();
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = 'yellow';
+                ctx.fillStyle = 'yellow';
+                ctx.fillRect(projectile.x - camera.x, projectile.y - camera.y, projectile.width, projectile.height);
+                ctx.restore();
+            });
         }
 
         function clearCanvas() {
@@ -112,6 +102,7 @@
         }
 
         function moveCharacter() {
+            // Horizontal movement
             if (keys['ArrowLeft']) {
                 character.dx = -character.speed;
             }
@@ -128,6 +119,7 @@
                 character.isJumping = true;
             }
 
+            // Update character position
             character.x += character.dx;
             character.y += character.dy;
 
@@ -135,45 +127,78 @@
             character.dy += character.gravity;
 
             // Prevent falling through the floor
-            if (character.y + character.height > canvas.height) {
-                character.y = canvas.height - character.height;
+            if (character.y + character.height > mapHeight) {
+                character.y = mapHeight - character.height;
                 character.dy = 0;
                 character.isJumping = false;
             }
 
-            // Collision with platforms
-            platforms.forEach(platform => {
-                if (character.x < platform.x + platform.width &&
-                    character.x + character.width > platform.x &&
-                    character.y + character.height > platform.y &&
-                    character.y + character.height < platform.y + platform.height) {
-                    character.y = platform.y - character.height;
-                    character.dy = 0;
-                    character.isJumping = false;
-                }
-            });
+            // Prevent going beyond the map boundaries
+            character.x = Math.max(0, Math.min(character.x, mapWidth - character.width));
+        }
 
-            // Collision with portal
-            if (character.x < portal.x + portal.width &&
-                character.x + character.width > portal.x &&
-                character.y + character.height > portal.y &&
-                character.y < portal.y + portal.height) {
-                // Enter portal and generate new map
-                setupMap();
-            }
+        function moveProjectiles() {
+            projectiles.forEach((projectile, index) => {
+                projectile.x += projectile.speed;
+
+                // Remove projectile if out of map boundaries
+                if (projectile.x > mapWidth || projectile.x < 0) {
+                    projectiles.splice(index, 1);
+                }
+
+                // Check for collision with targets
+                targets.forEach(target => {
+                    if (
+                        target.health > 0 &&
+                        projectile.x < target.x + target.width &&
+                        projectile.x + projectile.width > target.x &&
+                        projectile.y < target.y + target.height &&
+                        projectile.y + projectile.height > target.y
+                    ) {
+                        target.health -= 10;
+                        projectiles.splice(index, 1);
+                    }
+                });
+            });
+        }
+
+        function shootProjectile() {
+            let projectile = {
+                x: character.x + (character.dx >= 0 ? character.width : -10),
+                y: character.y + character.height / 2,
+                width: 10,
+                height: 5,
+                speed: character.dx >= 0 ? 5 : -5
+            };
+            projectiles.push(projectile);
+        }
+
+        function updateCamera() {
+            // Center the camera on the character
+            camera.x = character.x - camera.width / 2 + character.width / 2;
+            camera.y = character.y - camera.height / 2 + character.height / 2;
+
+            // Keep the camera within map boundaries
+            camera.x = Math.max(0, Math.min(camera.x, mapWidth - camera.width));
+            camera.y = Math.max(0, Math.min(camera.y, mapHeight - camera.height));
         }
 
         function update() {
             clearCanvas();
             moveCharacter();
+            moveProjectiles();
+            updateCamera();
             drawCharacter();
-            drawPlatforms();
-            drawPortal();
+            drawTargets();
+            drawProjectiles();
             requestAnimationFrame(update);
         }
 
         document.addEventListener('keydown', function (event) {
             keys[event.key] = true;
+            if (event.key === ' ') {
+                shootProjectile(); // Shoot projectile with space bar
+            }
         });
 
         document.addEventListener('keyup', function (event) {
@@ -181,7 +206,6 @@
         });
 
         // Initialize game
-        setupMap();
         update();
     </script>
 </body>
