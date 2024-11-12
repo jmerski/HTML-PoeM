@@ -8,11 +8,11 @@
         
         /* Sword Animation Styles */
         .sword-attack {
-            position: absolute;
-            width: 80px; /* Adjusted to suit typical sword size */
-            height: 150px; /* Adjusted height */
-            transform-origin: bottom center; /* Rotates around the sword handle */
-        }
+    position: absolute;
+    width: 20px; /* Sword width */
+    height: 50px; /* Sword height */
+    transform-origin: bottom center; /* Sword rotates from the handle */
+}
 
         /* Right Swing Animation */
         @keyframes swing-right {
@@ -104,19 +104,18 @@
                 if (keys['a']) {
                     let sword = document.getElementById("sword");
                     sword.style.display = "block";
-                    sword.style.position = "absolute";
                     
                     if (character.facingRight) {
                         sword.style.left = (character.x + character.width + canvas.offsetLeft - 20) + "px";
                         sword.style.animation = "swing-right 0.3s ease-out";
                     } else {
-                        sword.style.left = (character.x - 40 + canvas.offsetLeft) + "px";
+                        sword.style.left = (character.x - 60 + canvas.offsetLeft) + "px"; // Adjusted for better alignment on left swing
                         sword.style.animation = "swing-left 0.3s ease-out";
                     }
-                    sword.style.top = (character.y + canvas.offsetTop + (character.height / 2) - 40) + "px";
+                    sword.style.top = (character.y + canvas.offsetTop + character.height / 2) + "px";
 
                     // Reset the animation by forcing reflow
-                    sword.offsetWidth; // Trigger reflow to restart the animation
+                    sword.offsetWidth;
                     sword.style.animationPlayState = "running";
 
                     setTimeout(() => {
