@@ -18,3 +18,6 @@ Attack key works which is nice but the animations aren't great. Need to figure o
 
 Monday, November 11, 2024 @ 02:36:38 PM
 It seems like I should only commit based on which llm I am using. A lot of the times they give bad results and that is okay. 
+
+Monday, November 11, 2024 @ 04:47:08 PM
+Based on what chatgpt offers me, I most likely will have to make pure functionality. I do not appear to have been given the tools of creative design which is okay. 
