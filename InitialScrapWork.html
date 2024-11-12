@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D Side Scroller with Visible Projectiles</title>
+    <title>2D Side Scroller with Status Bar</title>
     <style>
         body {
             margin: 0;
@@ -18,7 +18,7 @@
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <canvas id="gameCanvas" width="800" height="700"></canvas>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -40,6 +40,11 @@
             jumpPower: 15,
             isJumping: false,
             gravity: 0.8,
+            health: 100,
+            maxHealth: 100,
+            exp: 0,
+            level: 1,
+            equipment: []
         };
 
         let keys = {};
@@ -49,7 +54,7 @@
             x: 0,
             y: 0,
             width: canvas.width,
-            height: canvas.height
+            height: 600 // Adjusted to keep gameplay area within 600px height
         };
 
         // Targets (all at ground level)
@@ -62,10 +67,20 @@
         // Projectiles
         let projectiles = [];
 
+        // Equipment drops
+        let equipmentDrops = [];
+
         // Game Loop Functions
         function drawCharacter() {
             ctx.fillStyle = 'red';
             ctx.fillRect(character.x - camera.x, character.y - camera.y, character.width, character.height);
+
+            // Draw health bar above character
+            ctx.fillStyle = 'red';
+            ctx.fillRect(character.x - camera.x, character.y - camera.y - 15, character.width, 5);
+
+            ctx.fillStyle = 'green';
+            ctx.fillRect(character.x - camera.x, character.y - camera.y - 15, character.width * (character.health / character.maxHealth), 5);
         }
 
         function drawTargets() {
@@ -75,7 +90,7 @@
                     ctx.fillStyle = 'purple';
                     ctx.fillRect(target.x - camera.x, target.y - camera.y, target.width, target.height);
 
-                    // Draw health bar
+                    // Draw health bar above target
                     ctx.fillStyle = 'red';
                     ctx.fillRect(target.x - camera.x, target.y - camera.y - 10, target.width, 5);
 
@@ -95,6 +110,42 @@
                 ctx.fillRect(projectile.x - camera.x, projectile.y - camera.y, projectile.width, projectile.height);
                 ctx.restore();
             });
+        }
+
+        function drawEquipmentDrops() {
+            equipmentDrops.forEach(equipment => {
+                // Draw equipment item as a simple rectangle
+                ctx.fillStyle = 'blue';
+                ctx.fillRect(equipment.x - camera.x, equipment.y - camera.y, equipment.width, equipment.height);
+
+                // Draw text above the equipment item
+                ctx.fillStyle = 'white';
+                ctx.font = '10px Arial';
+                ctx.fillText(equipment.name, equipment.x - camera.x, equipment.y - camera.y - 5);
+            });
+        }
+
+        function drawStatusBar() {
+            const statusBarHeight = 100;
+            const statusBarY = canvas.height - statusBarHeight;
+
+            // Draw status bar background
+            ctx.fillStyle = 'grey';
+            ctx.fillRect(0, statusBarY, canvas.width, statusBarHeight);
+
+            // Draw Health
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.fillText(`Health: ${character.health} / ${character.maxHealth}`, 10, statusBarY + 20);
+
+            // Draw EXP
+            ctx.fillText(`EXP: ${character.exp} / 100`, 10, statusBarY + 40);
+
+            // Draw Level
+            ctx.fillText(`Level: ${character.level}`, 200, statusBarY + 20);
+
+            // Draw Equipment
+            ctx.fillText(`Equipment: ${character.equipment.join(", ") || "None"}`, 350, statusBarY + 20);
         }
 
         function clearCanvas() {
@@ -147,7 +198,7 @@
                 }
 
                 // Check for collision with targets
-                targets.forEach(target => {
+                targets.forEach((target, targetIndex) => {
                     if (
                         target.health > 0 &&
                         projectile.x < target.x + target.width &&
@@ -157,8 +208,44 @@
                     ) {
                         target.health -= 10;
                         projectiles.splice(index, 1);
+
+                        // If target is defeated, drop equipment and grant EXP
+                        if (target.health <= 0) {
+                            character.exp += 20;
+                            equipmentDrops.push({
+                                x: target.x,
+                                y: target.y,
+                                width: 20,
+                                height: 20,
+                                name: "Sword +10 Attack"
+                            });
+
+                            // Level up if EXP reaches threshold
+                            if (character.exp >= 100) {
+                                character.exp = 0;
+                                character.level += 1;
+                                character.maxHealth += 20; // Increase max health on level up
+                                character.health = character.maxHealth; // Heal on level up
+                            }
+                        }
                     }
                 });
+            });
+        }
+
+        function collectEquipment() {
+            equipmentDrops.forEach((equipment, index) => {
+                if (
+                    character.x < equipment.x + equipment.width &&
+                    character.x + character.width > equipment.x &&
+                    character.y < equipment.y + equipment.height &&
+                    character.y + character.height > equipment.y
+                ) {
+                    // Collect the equipment
+                    character.equipment.push(equipment.name);
+                    console.log(`Collected: ${equipment.name}`);
+                    equipmentDrops.splice(index, 1);
+                }
             });
         }
 
@@ -187,10 +274,13 @@
             clearCanvas();
             moveCharacter();
             moveProjectiles();
+            collectEquipment();
             updateCamera();
             drawCharacter();
             drawTargets();
             drawProjectiles();
+            drawEquipmentDrops();
+            drawStatusBar();
             requestAnimationFrame(update);
         }
 

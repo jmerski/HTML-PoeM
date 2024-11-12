@@ -21,3 +21,6 @@ It seems like I should only commit based on which llm I am using. A lot of the t
 
 Monday, November 11, 2024 @ 04:47:08 PM
 Based on what chatgpt offers me, I most likely will have to make pure functionality. I do not appear to have been given the tools of creative design which is okay. 
+
+Monday, November 11, 2024 @ 05:02:25 PM
+black background eye strain + projectile animation. 
